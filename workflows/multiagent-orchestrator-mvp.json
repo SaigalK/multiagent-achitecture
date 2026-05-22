@@ -1,0 +1,411 @@
+{
+  "name": "Multiagent Orchestrator MVP",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { protocol_version: '1.1.0', project_id: 'PROJ-001', session_id: 'SES-2026-05-22-001', run_id: 'RUN-2026-05-22-001', user_request: 'Build an MVP auth flow with signup, login, and refresh tokens.', started_at: '2026-05-22T10:30:00+02:00' } }];"
+      },
+      "id": "build-initial-request",
+      "name": "Build Initial Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $json; return [{ json: { ...input, project_state: { project_id: input.project_id, project_name: 'Auth Service MVP', current_stage: 'planning', state_version: 1, source_of_truth: { requirements_artifact_id: 'PENDING' }, active_tasks: [], completed_tasks: [], decisions: [], artifacts: [], risks: ['Implementation cannot start without formal spec artifact'], updated_at: input.started_at } } }];"
+      },
+      "id": "initialize-project-state",
+      "name": "Initialize Project State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const pmOutput = { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, analysis: { request_type: 'feature_delivery', complexity: 'medium', is_clarification_required: false, summary: 'Run the full MVP chain: spec, builder, qa.', risks: ['Builder must not start before spec is available', 'QA must verify explicit acceptance criteria'], fallback_strategy: 'Retry only localized retryable failures; otherwise split scope or stop run.' }, execution_plan: { mode: 'sequential', phases: [ { phase_id: 'PHASE-1', name: 'Specification', agents: ['spec_agent'], goal: 'Create machine-readable spec artifact' }, { phase_id: 'PHASE-2', name: 'Implementation', agents: ['builder_agent'], goal: 'Create MVP code and API artifacts' }, { phase_id: 'PHASE-3', name: 'Verification', agents: ['qa_agent'], goal: 'Validate artifacts against spec' } ] }, tasks_to_dispatch: [ { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, task_id: 'TASK-001', parent_task_id: null, step_id: 'STEP-001', state_version: 1, retry_count: 0, max_retries: 2, agent: 'spec_agent', priority: 'high', status: 'pending', title: 'Formalize auth requirements', description: 'Convert raw request into formal spec artifact.', depends_on: [], input: { requirements: ['Describe signup, login and refresh token flow', 'Define acceptance criteria for implementation and QA'], context: { product_stage: 'mvp', stack: ['Node.js', 'Express', 'PostgreSQL'] }, input_artifacts: [] }, expected_output: { artifact_types: ['spec'], acceptance_criteria: ['Spec contains user stories', 'Spec contains acceptance criteria', 'Spec contains constraints and open questions'] }, constraints: { max_tokens: 2500, timeout_sec: 90, do_not: ['Do not generate implementation code', 'Do not invent hidden business rules'] }, created_at: data.started_at } ], state_updates: { state_version_increment: 1, artifacts_to_attach: [], decisions_to_record: ['Sequential MVP orchestration started'], tasks_to_mark_completed: [], tasks_to_retry: [] }, final_user_response: { status: 'in_progress', message: 'PM planned the run and dispatched the first task.', open_questions: [] } }; return [{ json: { ...data, pm_output: pmOutput } }];"
+      },
+      "id": "pm-planner",
+      "name": "PM Planner",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [950, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const pm = data.pm_output || {}; const required = ['protocol_version', 'project_id', 'session_id', 'run_id', 'analysis', 'execution_plan', 'tasks_to_dispatch', 'state_updates', 'final_user_response']; const missing = required.filter((key) => pm[key] === undefined); if (missing.length) { throw new Error(`PM output missing fields: ${missing.join(', ')}`); } if (!Array.isArray(pm.tasks_to_dispatch)) { throw new Error('PM output tasks_to_dispatch must be an array'); } return [{ json: data }];"
+      },
+      "id": "validate-pm-output",
+      "name": "Validate PM Output",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ Array.isArray($json.pm_output?.tasks_to_dispatch) && $json.pm_output.tasks_to_dispatch.length > 0 }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "any-tasks",
+      "name": "Any Tasks?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1450, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'completed', message: $json.pm_output.final_user_response.message, pm_output: $json.pm_output, project_state: $json.project_state } }];"
+      },
+      "id": "finish-no-tasks",
+      "name": "Finish No Tasks",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1690, 180]
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $json; const task = base.pm_output.tasks_to_dispatch[0]; const result = { protocol_version: base.protocol_version, project_id: base.project_id, session_id: base.session_id, run_id: base.run_id, task_id: task.task_id, agent: 'spec_agent', status: 'completed', summary: 'Formal spec artifact generated for the MVP auth flow.', artifacts: [ { artifact_id: 'ART-SPEC-001', type: 'spec', name: 'auth-flow.spec.json', format: 'application/json', content: { feature_summary: 'MVP auth flow for signup, login, and refresh token rotation.', user_stories: ['User can sign up with email/password', 'User can log in and receive access and refresh tokens', 'User can refresh access token'], acceptance_criteria: ['Endpoints /signup, /login, /refresh-token exist', 'Validation is enforced on request payloads', 'Machine-readable API contract is produced'], constraints: ['JWT auth only', 'No Passport.js', 'Refresh token rotation required'], assumptions: ['Single-tenant MVP scope'], open_questions: [] } } ], issues: [], error: null, decisions: ['Email/password auth is the initial MVP scope'], next_actions: ['Create builder task from the approved spec'], metrics: { tokens_used: 1200, execution_time_sec: 16 }, completed_at: '2026-05-22T10:31:20+02:00' }; return [{ json: { ...base, active_task: task, spec_result: result } }];"
+      },
+      "id": "spec-agent",
+      "name": "Spec Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1690, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json.spec_result || {}; const required = ['protocol_version', 'project_id', 'session_id', 'run_id', 'task_id', 'agent', 'status', 'summary', 'artifacts', 'issues', 'decisions', 'next_actions', 'metrics', 'completed_at']; const missing = required.filter((key) => result[key] === undefined); if (missing.length) { throw new Error(`Spec result missing fields: ${missing.join(', ')}`); } const hasSpecArtifact = Array.isArray(result.artifacts) && result.artifacts.some((artifact) => artifact.type === 'spec'); if (!hasSpecArtifact) { throw new Error('Spec result must contain a spec artifact'); } return [{ json: $json }];"
+      },
+      "id": "validate-spec-result",
+      "name": "Validate Spec Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1930, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const state = data.project_state; const specArtifact = data.spec_result.artifacts[0]; const nextState = { ...state, current_stage: 'implementation', state_version: state.state_version + 1, source_of_truth: { ...state.source_of_truth, requirements_artifact_id: specArtifact.artifact_id, architecture_artifact_id: specArtifact.artifact_id }, active_tasks: ['TASK-002'], completed_tasks: [...state.completed_tasks, 'TASK-001'], decisions: [...state.decisions, { id: 'DEC-001', summary: 'Formal spec approved for builder stage', owner: 'pm_agent' }], artifacts: [...state.artifacts, specArtifact.artifact_id], updated_at: '2026-05-22T10:31:25+02:00' }; return [{ json: { ...data, project_state: nextState } }];"
+      },
+      "id": "update-state-after-spec",
+      "name": "Update State After Spec",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2170, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const specArtifact = data.spec_result.artifacts[0]; const builderTask = { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, task_id: 'TASK-002', parent_task_id: 'TASK-001', step_id: 'STEP-002', state_version: data.project_state.state_version, retry_count: 0, max_retries: 2, agent: 'builder_agent', priority: 'high', status: 'pending', title: 'Implement MVP auth flow', description: 'Create API contract and implementation artifacts from approved spec.', depends_on: ['TASK-001'], input: { requirements: specArtifact.content.acceptance_criteria, context: { project_state: data.project_state.current_stage, source_spec_artifact_id: specArtifact.artifact_id }, input_artifacts: [specArtifact] }, expected_output: { artifact_types: ['api_spec', 'code', 'dependency_list'], acceptance_criteria: specArtifact.content.acceptance_criteria }, constraints: { max_tokens: 3500, timeout_sec: 120, do_not: ['Do not change approved scope', 'Do not skip input validation'] }, created_at: '2026-05-22T10:31:30+02:00' }; return [{ json: { ...data, builder_task: builderTask } }];"
+      },
+      "id": "build-builder-task",
+      "name": "Build Builder Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2410, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const task = data.builder_task; const result = { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, task_id: task.task_id, agent: 'builder_agent', status: 'completed', summary: 'Builder created API contract, implementation stub, and dependency list.', artifacts: [ { artifact_id: 'ART-API-001', type: 'api_spec', name: 'auth.openapi.json', format: 'application/json', content: { openapi: '3.1.0', paths: { '/signup': { post: {} }, '/login': { post: {} }, '/refresh-token': { post: {} } } } }, { artifact_id: 'ART-CODE-001', type: 'code', name: 'auth.routes.ts', format: 'text/typescript', content: 'export const authRoutes = [\'signup\', \'login\', \'refresh-token\'];' }, { artifact_id: 'ART-DEP-001', type: 'dependency_list', name: 'backend-deps.json', format: 'application/json', content: { dependencies: [ { name: 'express', version: '^5.1.0' }, { name: 'zod', version: '^3.23.8' }, { name: 'jsonwebtoken', version: '^9.0.2' } ] } } ], issues: [], error: null, decisions: ['Zod selected for request validation'], next_actions: ['Pass artifacts to QA'], metrics: { tokens_used: 2400, execution_time_sec: 38 }, completed_at: '2026-05-22T10:32:10+02:00' }; return [{ json: { ...data, builder_result: result } }];"
+      },
+      "id": "builder-agent",
+      "name": "Builder Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2650, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json.builder_result || {}; const required = ['protocol_version', 'project_id', 'session_id', 'run_id', 'task_id', 'agent', 'status', 'summary', 'artifacts', 'issues', 'decisions', 'next_actions', 'metrics', 'completed_at']; const missing = required.filter((key) => result[key] === undefined); if (missing.length) { throw new Error(`Builder result missing fields: ${missing.join(', ')}`); } const artifactTypes = new Set((result.artifacts || []).map((artifact) => artifact.type)); for (const expected of ['api_spec', 'code', 'dependency_list']) { if (!artifactTypes.has(expected)) { throw new Error(`Builder result missing artifact type: ${expected}`); } } return [{ json: $json }];"
+      },
+      "id": "validate-builder-result",
+      "name": "Validate Builder Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2890, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const state = data.project_state; const builderArtifacts = data.builder_result.artifacts.map((artifact) => artifact.artifact_id); const nextState = { ...state, current_stage: 'verification', state_version: state.state_version + 1, source_of_truth: { ...state.source_of_truth, latest_api_spec_artifact_id: 'ART-API-001' }, active_tasks: ['TASK-003'], completed_tasks: [...state.completed_tasks, 'TASK-002'], decisions: [...state.decisions, { id: 'DEC-002', summary: 'Builder artifacts approved for QA handoff', owner: 'pm_agent' }], artifacts: [...state.artifacts, ...builderArtifacts], updated_at: '2026-05-22T10:32:15+02:00' }; return [{ json: { ...data, project_state: nextState } }];"
+      },
+      "id": "update-state-after-builder",
+      "name": "Update State After Builder",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3130, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const qaTask = { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, task_id: 'TASK-003', parent_task_id: 'TASK-002', step_id: 'STEP-003', state_version: data.project_state.state_version, retry_count: 0, max_retries: 1, agent: 'qa_agent', priority: 'high', status: 'pending', title: 'Validate auth flow implementation', description: 'Check builder artifacts against explicit acceptance criteria.', depends_on: ['TASK-002'], input: { requirements: data.builder_task.expected_output.acceptance_criteria, context: { project_state: data.project_state.current_stage, source_spec_artifact_id: 'ART-SPEC-001' }, input_artifacts: [...data.builder_result.artifacts, ...data.spec_result.artifacts] }, expected_output: { artifact_types: ['test_cases', 'bug_report'], acceptance_criteria: data.builder_task.expected_output.acceptance_criteria }, constraints: { max_tokens: 2200, timeout_sec: 90, do_not: ['Do not invent extra quality gates beyond acceptance criteria', 'Do not pass missing validation coverage'] }, created_at: '2026-05-22T10:32:20+02:00' }; return [{ json: { ...data, qa_task: qaTask } }];"
+      },
+      "id": "build-qa-task",
+      "name": "Build QA Task",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3370, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const task = data.qa_task; const result = { protocol_version: data.protocol_version, project_id: data.project_id, session_id: data.session_id, run_id: data.run_id, task_id: task.task_id, agent: 'qa_agent', status: 'completed', summary: 'QA validated the core auth flow and found one medium-risk coverage gap.', artifacts: [ { artifact_id: 'ART-QA-TEST-001', type: 'test_cases', name: 'auth-flow.test-cases.json', format: 'application/json', content: { cases: ['signup success', 'login success', 'refresh token success', 'invalid payload rejected'] } }, { artifact_id: 'ART-QA-BUG-001', type: 'bug_report', name: 'auth-flow.qa-report.json', format: 'application/json', content: { verdict: 'pass_with_risks', coverage_gap: 'Negative rate-limit path is not fully exercised' } } ], issues: [ { severity: 'medium', message: 'Rate-limit negative path needs broader test coverage.', artifact_id: 'ART-QA-BUG-001' } ], error: null, decisions: ['release_verdict: pass_with_risks'], next_actions: ['Extend QA coverage for rate limiting on the next run'], metrics: { tokens_used: 1100, execution_time_sec: 21 }, completed_at: '2026-05-22T10:32:55+02:00' }; return [{ json: { ...data, qa_result: result } }];"
+      },
+      "id": "qa-agent",
+      "name": "QA Agent",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3610, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $json.qa_result || {}; const required = ['protocol_version', 'project_id', 'session_id', 'run_id', 'task_id', 'agent', 'status', 'summary', 'artifacts', 'issues', 'decisions', 'next_actions', 'metrics', 'completed_at']; const missing = required.filter((key) => result[key] === undefined); if (missing.length) { throw new Error(`QA result missing fields: ${missing.join(', ')}`); } const artifactTypes = new Set((result.artifacts || []).map((artifact) => artifact.type)); for (const expected of ['test_cases', 'bug_report']) { if (!artifactTypes.has(expected)) { throw new Error(`QA result missing artifact type: ${expected}`); } } return [{ json: $json }];"
+      },
+      "id": "validate-qa-result",
+      "name": "Validate QA Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [3850, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $json; const state = data.project_state; const qaArtifacts = data.qa_result.artifacts.map((artifact) => artifact.artifact_id); const nextState = { ...state, current_stage: 'qa_review', state_version: state.state_version + 1, active_tasks: [], completed_tasks: [...state.completed_tasks, 'TASK-003'], decisions: [...state.decisions, { id: 'DEC-003', summary: 'QA verdict recorded as pass_with_risks', owner: 'pm_agent' }], artifacts: [...state.artifacts, ...qaArtifacts], risks: ['Rate-limit negative path needs broader coverage'], updated_at: '2026-05-22T10:33:00+02:00' }; return [{ json: { ...data, project_state: nextState } }];"
+      },
+      "id": "update-state-after-qa",
+      "name": "Update State After QA",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4090, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { status: 'completed', message: 'MVP multiagent run finished.', pm_output: $json.pm_output, spec_result: $json.spec_result, builder_result: $json.builder_result, qa_result: $json.qa_result, project_state: $json.project_state, final_user_response: { status: 'completed', message: 'Spec, builder, and QA stages completed in one sequential run.', open_questions: [] } } }];"
+      },
+      "id": "final-run-summary",
+      "name": "Final Run Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [4330, 420]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Initial Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Initial Request": {
+      "main": [
+        [
+          {
+            "node": "Initialize Project State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Initialize Project State": {
+      "main": [
+        [
+          {
+            "node": "PM Planner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PM Planner": {
+      "main": [
+        [
+          {
+            "node": "Validate PM Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate PM Output": {
+      "main": [
+        [
+          {
+            "node": "Any Tasks?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any Tasks?": {
+      "main": [
+        [
+          {
+            "node": "Spec Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Finish No Tasks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Spec Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Spec Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Spec Result": {
+      "main": [
+        [
+          {
+            "node": "Update State After Spec",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State After Spec": {
+      "main": [
+        [
+          {
+            "node": "Build Builder Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Builder Task": {
+      "main": [
+        [
+          {
+            "node": "Builder Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Builder Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate Builder Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Builder Result": {
+      "main": [
+        [
+          {
+            "node": "Update State After Builder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State After Builder": {
+      "main": [
+        [
+          {
+            "node": "Build QA Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build QA Task": {
+      "main": [
+        [
+          {
+            "node": "QA Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "QA Agent": {
+      "main": [
+        [
+          {
+            "node": "Validate QA Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate QA Result": {
+      "main": [
+        [
+          {
+            "node": "Update State After QA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update State After QA": {
+      "main": [
+        [
+          {
+            "node": "Final Run Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {},
+  "pinData": {},
+  "versionId": "b2b95842-20aa-4e74-90d9-3a30d977b111"
+}

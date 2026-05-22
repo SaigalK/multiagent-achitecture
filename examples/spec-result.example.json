@@ -1,0 +1,54 @@
+{
+  "protocol_version": "1.1.0",
+  "project_id": "PROJ-001",
+  "session_id": "SES-2026-05-22-001",
+  "run_id": "RUN-2026-05-22-001",
+  "task_id": "TASK-001",
+  "agent": "spec_agent",
+  "status": "completed",
+  "summary": "Підготовлено formal spec для MVP auth flow з user stories і acceptance criteria.",
+  "artifacts": [
+    {
+      "artifact_id": "ART-SPEC-001",
+      "type": "spec",
+      "name": "auth-flow.spec.json",
+      "format": "application/json",
+      "content": {
+        "feature_summary": "MVP auth flow з signup, login і refresh token rotation.",
+        "user_stories": [
+          "Як користувач, я хочу зареєструватися через email/password.",
+          "Як користувач, я хочу залогінитися і отримати access та refresh token.",
+          "Як користувач, я хочу оновити access token без повторного login."
+        ],
+        "acceptance_criteria": [
+          "Є endpoints /signup, /login, /refresh-token",
+          "Повертаються access і refresh токени",
+          "Вхідні payload проходять валідацію",
+          "Є machine-readable API contract"
+        ],
+        "constraints": [
+          "JWT auth only",
+          "Без Passport.js",
+          "Refresh token rotation required"
+        ],
+        "assumptions": [
+          "Для MVP використовується email/password auth без social login"
+        ],
+        "open_questions": []
+      }
+    }
+  ],
+  "issues": [],
+  "error": null,
+  "decisions": [
+    "Scope обмежено email/password auth для MVP"
+  ],
+  "next_actions": [
+    "Передати spec у builder_agent для реалізації API і кодових артефактів"
+  ],
+  "metrics": {
+    "tokens_used": 1320,
+    "execution_time_sec": 18
+  },
+  "completed_at": "2026-05-22T10:31:20+02:00"
+}

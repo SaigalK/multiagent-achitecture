@@ -1,0 +1,55 @@
+{
+  "protocol_version": "1.1.0",
+  "project_id": "PROJ-001",
+  "session_id": "SES-2026-05-22-001",
+  "run_id": "RUN-2026-05-22-001",
+  "task_id": "TASK-003",
+  "agent": "qa_agent",
+  "status": "completed",
+  "summary": "QA підтвердив базову готовність auth flow, але зафіксував один не критичний ризик щодо rate limiting coverage.",
+  "artifacts": [
+    {
+      "artifact_id": "ART-QA-TEST-001",
+      "type": "test_cases",
+      "name": "auth-flow.test-cases.json",
+      "format": "application/json",
+      "content": {
+        "cases": [
+          "signup success",
+          "login success",
+          "refresh token success",
+          "invalid payload rejected"
+        ]
+      }
+    },
+    {
+      "artifact_id": "ART-QA-BUG-001",
+      "type": "bug_report",
+      "name": "auth-flow.qa-report.json",
+      "format": "application/json",
+      "content": {
+        "verdict": "pass_with_risks",
+        "coverage_gap": "Rate limiting перевірено тільки на happy path"
+      }
+    }
+  ],
+  "issues": [
+    {
+      "severity": "medium",
+      "message": "Потрібно розширити QA coverage для негативних rate-limit сценаріїв.",
+      "artifact_id": "ART-QA-BUG-001"
+    }
+  ],
+  "error": null,
+  "decisions": [
+    "release_verdict: pass_with_risks"
+  ],
+  "next_actions": [
+    "Додати edge-case перевірки для rate limiting у наступному run"
+  ],
+  "metrics": {
+    "tokens_used": 1180,
+    "execution_time_sec": 22
+  },
+  "completed_at": "2026-05-22T10:32:58+02:00"
+}

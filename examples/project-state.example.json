@@ -1,0 +1,46 @@
+{
+  "project_id": "PROJ-001",
+  "project_name": "Auth Service MVP",
+  "current_stage": "qa_review",
+  "state_version": 4,
+  "source_of_truth": {
+    "requirements_artifact_id": "ART-SPEC-001",
+    "architecture_artifact_id": "ART-SPEC-001",
+    "latest_api_spec_artifact_id": "ART-API-001"
+  },
+  "active_tasks": [],
+  "completed_tasks": [
+    "TASK-001",
+    "TASK-002",
+    "TASK-003"
+  ],
+  "decisions": [
+    {
+      "id": "DEC-001",
+      "summary": "Scope обмежено email/password auth для MVP",
+      "owner": "spec_agent"
+    },
+    {
+      "id": "DEC-002",
+      "summary": "API contract зафіксовано до початку QA",
+      "owner": "builder_agent"
+    },
+    {
+      "id": "DEC-003",
+      "summary": "QA verdict: pass_with_risks",
+      "owner": "qa_agent"
+    }
+  ],
+  "artifacts": [
+    "ART-SPEC-001",
+    "ART-API-001",
+    "ART-CODE-001",
+    "ART-DEP-001",
+    "ART-QA-TEST-001",
+    "ART-QA-BUG-001"
+  ],
+  "risks": [
+    "Rate-limit edge cases ще не покриті повністю"
+  ],
+  "updated_at": "2026-05-22T10:33:05+02:00"
+}

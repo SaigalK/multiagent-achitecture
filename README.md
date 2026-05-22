@@ -7,6 +7,8 @@
 - `schemas/` — формальні JSON Schema для task, result, project state і PM output
 - `docs/` — архітектурна специфікація і workflow blueprint
 - `prompts/` — готові системні prompt-файли для MVP-агентів
+- `examples/` — еталонні JSON-приклади для PM, Spec, Builder, QA і project state
+- `workflows/` — importable n8n workflow JSON для MVP skeleton
 
 ## Що вже закрито в протоколі
 
@@ -32,6 +34,12 @@ multiagent-orchestrator-mvp/
   docs/
     architecture-v1.1.md
     mvp-workflow-blueprint.md
+  examples/
+    pm-output.example.json
+    spec-result.example.json
+    builder-result.example.json
+    qa-result.example.json
+    project-state.example.json
   prompts/
     pm-agent.md
     spec-agent.md
@@ -42,6 +50,8 @@ multiagent-orchestrator-mvp/
     result.schema.json
     project-state.schema.json
     pm-output.schema.json
+  workflows/
+    multiagent-orchestrator-mvp.json
 ```
 
 ## Рекомендований запуск
@@ -53,6 +63,12 @@ multiagent-orchestrator-mvp/
 ## Перший тестовий сценарій
 
 `Build an MVP auth flow with signup, login, and refresh tokens.`
+
+## Що можна використати одразу
+
+1. Імпортувати `workflows/multiagent-orchestrator-mvp.json` у `n8n` як self-contained skeleton.
+2. Використати `examples/*.json` як golden samples для валідатора і тестів.
+3. Замінити mock `Code` nodes на реальні LLM/API виклики без зміни контрактів.
 
 ## Статус
 

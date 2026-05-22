@@ -1,0 +1,60 @@
+{
+  "protocol_version": "1.1.0",
+  "project_id": "PROJ-001",
+  "session_id": "SES-2026-05-22-001",
+  "run_id": "RUN-2026-05-22-001",
+  "task_id": "TASK-002",
+  "agent": "builder_agent",
+  "status": "completed",
+  "summary": "Створено API contract, маршрутні файли і список залежностей для MVP auth flow.",
+  "artifacts": [
+    {
+      "artifact_id": "ART-API-001",
+      "type": "api_spec",
+      "name": "auth.openapi.json",
+      "format": "application/json",
+      "content": {
+        "openapi": "3.1.0",
+        "paths": {
+          "/signup": { "post": {} },
+          "/login": { "post": {} },
+          "/refresh-token": { "post": {} }
+        }
+      }
+    },
+    {
+      "artifact_id": "ART-CODE-001",
+      "type": "code",
+      "name": "auth.routes.ts",
+      "format": "text/typescript",
+      "content": "export const authRoutes = ['signup', 'login', 'refresh-token'];"
+    },
+    {
+      "artifact_id": "ART-DEP-001",
+      "type": "dependency_list",
+      "name": "backend-deps.json",
+      "format": "application/json",
+      "content": {
+        "dependencies": [
+          { "name": "express", "version": "^5.1.0" },
+          { "name": "zod", "version": "^3.23.8" },
+          { "name": "jsonwebtoken", "version": "^9.0.2" }
+        ]
+      }
+    }
+  ],
+  "issues": [],
+  "error": null,
+  "decisions": [
+    "API contract зафіксовано до початку QA",
+    "Для validation використано Zod"
+  ],
+  "next_actions": [
+    "Передати api_spec і кодові артефакти у qa_agent"
+  ],
+  "metrics": {
+    "tokens_used": 2480,
+    "execution_time_sec": 41
+  },
+  "completed_at": "2026-05-22T10:32:11+02:00"
+}
