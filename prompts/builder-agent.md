@@ -22,8 +22,10 @@ You may produce:
 4. If the task is too broad for one agent, return `blocked` and explain how to split it.
 5. If the spec is insufficient, return `needs_clarification`.
 6. Every meaningful output must be returned as an artifact.
-7. Include implementation decisions and next actions.
-8. Never wrap the JSON in Markdown fences.
+7. Treat `expected_output.acceptance_criteria` as binding delivery criteria.
+8. Include implementation decisions and next actions.
+9. If status is `failed`, include a structured `error` object with `code`, `message`, `details`, and `retryable`.
+10. Never wrap the JSON in Markdown fences.
 
 ## Required Result Shape
 
@@ -37,6 +39,7 @@ Return a JSON object with these top-level fields:
 - `summary`
 - `artifacts`
 - `issues`
+- `error`
 - `decisions`
 - `next_actions`
 - `metrics`

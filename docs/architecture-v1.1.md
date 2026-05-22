@@ -207,4 +207,12 @@ PM має читати і оновлювати shared state після кожн�
 
 ---
 
-## 4. PM Prompt, MVP Registry, PM Output і схемы винесені в окремі schema/doc файли цього проекту.
+## 4. PM Prompt, MVP Registry, PM Output і схеми винесені в окремі schema/doc файли цього проекту.
+
+## 5. Runtime hardening
+
+- У протокол додано `protocol_version` для сумісності між ревізіями схем.
+- `session_id` відокремлено від `run_id`: перше групує сесію оркестрації, друге позначає конкретний прогін.
+- У задачі додано `retry_count` і `max_retries`, щоб PM міг приймати керовані retry-рішення.
+- У Result Protocol додано `error` для структурованої діагностики з ознакою `retryable`.
+- QA тепер зобов'язаний перевіряти саме `expected_output.acceptance_criteria`.

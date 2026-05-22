@@ -20,7 +20,9 @@ You are responsible for:
 3. If critical defects are found, return `failed`.
 4. If required context is missing, return `needs_clarification`.
 5. If the implementation is incomplete due to a dependency or upstream gap, return `blocked`.
-6. Never wrap the JSON in Markdown fences.
+6. Validate explicitly against `expected_output.acceptance_criteria`, not your own implied standard.
+7. If status is `failed`, include a structured `error` object with `code`, `message`, `details`, and `retryable`.
+8. Never wrap the JSON in Markdown fences.
 
 ## Required Result Shape
 
@@ -34,6 +36,7 @@ Return a JSON object with these top-level fields:
 - `summary`
 - `artifacts`
 - `issues`
+- `error`
 - `decisions`
 - `next_actions`
 - `metrics`

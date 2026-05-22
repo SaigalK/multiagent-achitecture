@@ -4,6 +4,10 @@
   "title": "PM Output",
   "type": "object",
   "required": [
+    "protocol_version",
+    "project_id",
+    "session_id",
+    "run_id",
     "analysis",
     "execution_plan",
     "tasks_to_dispatch",
@@ -11,6 +15,10 @@
     "final_user_response"
   ],
   "properties": {
+    "protocol_version": { "type": "string", "minLength": 1 },
+    "project_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
     "analysis": {
       "type": "object",
       "required": ["request_type", "complexity", "is_clarification_required", "summary", "risks"],
@@ -19,7 +27,8 @@
         "complexity": { "type": "string", "enum": ["low", "medium", "high"] },
         "is_clarification_required": { "type": "boolean" },
         "summary": { "type": "string", "minLength": 1 },
-        "risks": { "type": "array", "items": { "type": "string" } }
+        "risks": { "type": "array", "items": { "type": "string" } },
+        "fallback_strategy": { "type": "string", "minLength": 1 }
       },
       "additionalProperties": false
     },
@@ -56,7 +65,8 @@
         "state_version_increment": { "type": "integer", "minimum": 0 },
         "artifacts_to_attach": { "type": "array", "items": { "type": "string" } },
         "decisions_to_record": { "type": "array", "items": { "type": "string" } },
-        "tasks_to_mark_completed": { "type": "array", "items": { "type": "string" } }
+        "tasks_to_mark_completed": { "type": "array", "items": { "type": "string" } },
+        "tasks_to_retry": { "type": "array", "items": { "type": "string" } }
       },
       "additionalProperties": false
     },
@@ -87,11 +97,15 @@
     "task": {
       "type": "object",
       "required": [
+        "protocol_version",
         "project_id",
+        "session_id",
         "run_id",
         "task_id",
         "step_id",
         "state_version",
+        "retry_count",
+        "max_retries",
         "agent",
         "priority",
         "status",
@@ -103,12 +117,16 @@
         "created_at"
       ],
       "properties": {
+        "protocol_version": { "type": "string", "minLength": 1 },
         "project_id": { "type": "string", "minLength": 1 },
+        "session_id": { "type": "string", "minLength": 1 },
         "run_id": { "type": "string", "minLength": 1 },
         "task_id": { "type": "string", "minLength": 1 },
         "parent_task_id": { "type": ["string", "null"] },
         "step_id": { "type": "string", "minLength": 1 },
         "state_version": { "type": "integer", "minimum": 1 },
+        "retry_count": { "type": "integer", "minimum": 0 },
+        "max_retries": { "type": "integer", "minimum": 0 },
         "agent": { "type": "string", "minLength": 1 },
         "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
         "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "failed", "blocked", "review", "needs_clarification"] },

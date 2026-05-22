@@ -8,6 +8,14 @@
 - `docs/` — архітектурна специфікація і workflow blueprint
 - `prompts/` — готові системні prompt-файли для MVP-агентів
 
+## Що вже закрито в протоколі
+
+- `protocol_version` для безпечної еволюції схем
+- `session_id` + `run_id` для групування одного orchestration cycle
+- `retry_count` + `max_retries` для керованих повторних запусків
+- `error` у Result Protocol для діагностики і retry-рішень
+- явний `Error Handling` у PM prompt
+
 ## MVP stack
 
 - PM Agent

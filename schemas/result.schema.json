@@ -4,7 +4,9 @@
   "title": "Multiagent Result",
   "type": "object",
   "required": [
+    "protocol_version",
     "project_id",
+    "session_id",
     "run_id",
     "task_id",
     "agent",
@@ -18,7 +20,9 @@
     "completed_at"
   ],
   "properties": {
+    "protocol_version": { "type": "string", "minLength": 1 },
     "project_id": { "type": "string", "minLength": 1 },
+    "session_id": { "type": "string", "minLength": 1 },
     "run_id": { "type": "string", "minLength": 1 },
     "task_id": { "type": "string", "minLength": 1 },
     "agent": { "type": "string", "minLength": 1 },
@@ -26,6 +30,17 @@
     "summary": { "type": "string", "minLength": 1 },
     "artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
     "issues": { "type": "array", "items": { "$ref": "#/$defs/issue" } },
+    "error": {
+      "type": ["object", "null"],
+      "required": ["code", "message", "retryable"],
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string", "minLength": 1 },
+        "details": {},
+        "retryable": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
     "decisions": { "type": "array", "items": { "type": "string" } },
     "next_actions": { "type": "array", "items": { "type": "string" } },
     "metrics": {
