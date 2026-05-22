@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "multiagent/project-state.schema.json",
+  "title": "Multiagent Project State",
+  "type": "object",
+  "required": [
+    "project_id",
+    "project_name",
+    "current_stage",
+    "state_version",
+    "source_of_truth",
+    "active_tasks",
+    "completed_tasks",
+    "decisions",
+    "artifacts",
+    "risks",
+    "updated_at"
+  ],
+  "properties": {
+    "project_id": { "type": "string", "minLength": 1 },
+    "project_name": { "type": "string", "minLength": 1 },
+    "current_stage": { "type": "string", "minLength": 1 },
+    "state_version": { "type": "integer", "minimum": 1 },
+    "source_of_truth": {
+      "type": "object",
+      "required": ["requirements_artifact_id"],
+      "properties": {
+        "requirements_artifact_id": { "type": "string", "minLength": 1 },
+        "architecture_artifact_id": { "type": "string" },
+        "latest_api_spec_artifact_id": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "active_tasks": { "type": "array", "items": { "type": "string" } },
+    "completed_tasks": { "type": "array", "items": { "type": "string" } },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "summary", "owner"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "summary": { "type": "string", "minLength": 1 },
+          "owner": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": false
+      }
+    },
+    "artifacts": { "type": "array", "items": { "type": "string" } },
+    "risks": { "type": "array", "items": { "type": "string" } },
+    "updated_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "multiagent/pm-output.schema.json",
+  "title": "PM Output",
+  "type": "object",
+  "required": [
+    "analysis",
+    "execution_plan",
+    "tasks_to_dispatch",
+    "state_updates",
+    "final_user_response"
+  ],
+  "properties": {
+    "analysis": {
+      "type": "object",
+      "required": ["request_type", "complexity", "is_clarification_required", "summary", "risks"],
+      "properties": {
+        "request_type": { "type": "string", "minLength": 1 },
+        "complexity": { "type": "string", "enum": ["low", "medium", "high"] },
+        "is_clarification_required": { "type": "boolean" },
+        "summary": { "type": "string", "minLength": 1 },
+        "risks": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "execution_plan": {
+      "type": "object",
+      "required": ["mode", "phases"],
+      "properties": {
+        "mode": { "type": "string", "enum": ["sequential", "parallel", "hybrid"] },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["phase_id", "name", "agents", "goal"],
+            "properties": {
+              "phase_id": { "type": "string", "minLength": 1 },
+              "name": { "type": "string", "minLength": 1 },
+              "agents": { "type": "array", "items": { "type": "string" } },
+              "goal": { "type": "string", "minLength": 1 }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "tasks_to_dispatch": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/task" }
+    },
+    "state_updates": {
+      "type": "object",
+      "required": ["state_version_increment", "artifacts_to_attach", "decisions_to_record", "tasks_to_mark_completed"],
+      "properties": {
+        "state_version_increment": { "type": "integer", "minimum": 0 },
+        "artifacts_to_attach": { "type": "array", "items": { "type": "string" } },
+        "decisions_to_record": { "type": "array", "items": { "type": "string" } },
+        "tasks_to_mark_completed": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "final_user_response": {
+      "type": "object",
+      "required": ["status", "message", "open_questions"],
+      "properties": {
+        "status": { "type": "string", "enum": ["in_progress", "completed", "needs_clarification", "failed"] },
+        "message": { "type": "string", "minLength": 1 },
+        "open_questions": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "required": ["artifact_id", "type", "format", "name", "content"],
+      "properties": {
+        "artifact_id": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "format": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "content": {}
+      },
+      "additionalProperties": false
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "project_id",
+        "run_id",
+        "task_id",
+        "step_id",
+        "state_version",
+        "agent",
+        "priority",
+        "status",
+        "title",
+        "description",
+        "input",
+        "expected_output",
+        "constraints",
+        "created_at"
+      ],
+      "properties": {
+        "project_id": { "type": "string", "minLength": 1 },
+        "run_id": { "type": "string", "minLength": 1 },
+        "task_id": { "type": "string", "minLength": 1 },
+        "parent_task_id": { "type": ["string", "null"] },
+        "step_id": { "type": "string", "minLength": 1 },
+        "state_version": { "type": "integer", "minimum": 1 },
+        "agent": { "type": "string", "minLength": 1 },
+        "priority": { "type": "string", "enum": ["low", "medium", "high", "critical"] },
+        "status": { "type": "string", "enum": ["pending", "in_progress", "completed", "failed", "blocked", "review", "needs_clarification"] },
+        "title": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "input": {
+          "type": "object",
+          "required": ["requirements", "context", "input_artifacts"],
+          "properties": {
+            "requirements": { "type": "array", "items": { "type": "string" } },
+            "context": { "type": "object" },
+            "input_artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } }
+          },
+          "additionalProperties": true
+        },
+        "expected_output": {
+          "type": "object",
+          "required": ["artifact_types", "acceptance_criteria"],
+          "properties": {
+            "artifact_types": { "type": "array", "items": { "type": "string" } },
+            "acceptance_criteria": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "constraints": {
+          "type": "object",
+          "required": ["max_tokens", "timeout_sec", "do_not"],
+          "properties": {
+            "max_tokens": { "type": "integer", "minimum": 1 },
+            "timeout_sec": { "type": "integer", "minimum": 1 },
+            "do_not": { "type": "array", "items": { "type": "string" } }
+          },
+          "additionalProperties": true
+        },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
