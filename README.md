@@ -6,6 +6,7 @@
 
 - `schemas/` — формальні JSON Schema для task, result, project state і PM output
 - `docs/` — архітектурна специфікація і workflow blueprint
+- `prompts/` — готові системні prompt-файли для MVP-агентів
 
 ## MVP stack
 
@@ -23,6 +24,11 @@ multiagent-orchestrator-mvp/
   docs/
     architecture-v1.1.md
     mvp-workflow-blueprint.md
+  prompts/
+    pm-agent.md
+    spec-agent.md
+    builder-agent.md
+    qa-agent.md
   schemas/
     task.schema.json
     result.schema.json
